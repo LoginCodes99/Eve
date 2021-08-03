@@ -12,8 +12,12 @@ event server that user's can react to to join the lobby
 
 ## Eve Server Commands
 
-## Support me
-**Patreon: **
+- !eve create: Creates an event
 
-## Join the discord server
-**Discord Server: **
+### Support me
+
+- __Patreon:__
+
+### Join the discord server
+
+- __Discord Server:__
