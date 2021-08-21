@@ -1,3 +1,5 @@
+package EveEvents;
+
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -14,6 +16,10 @@ public class EventController {
     Map<String, Event> listOfEvents = new HashMap<String, Event>();
     Map<String, String> messageIdToCreator = new HashMap<String, String>();
     Map<String, Event> editingEvents = new HashMap<String, Event>();
+
+    public EventController(JDA jda) {
+        this.jda = jda;
+    }
 
     public void setJDA(JDA jda) {
         this.jda = jda;

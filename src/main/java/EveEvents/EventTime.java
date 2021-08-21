@@ -1,3 +1,5 @@
+package EveEvents;
+
 public class EventTime {
     public String time;
     public String ampm;

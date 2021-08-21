@@ -1,27 +1,29 @@
+import EveEvents.Event;
+import EveEvents.EventController;
+import Server.Server;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.requests.restaction.MessageAction;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 
 public class MessageListener extends ListenerAdapter {
     JDA jda;
-    EventController eventController;
-    EventChannel eventChannel;
+    Map<String, Server> serverList;
+    Map<String, Server> userToServerList;
     Pattern timeFormat;
 
-    public MessageListener(EventController ec, EventChannel ech) {
-        eventController = ec;
-        eventChannel = ech;
+    public MessageListener(Map<String, Server> serverList, Map<String, Server> userToServerList) {
+        this.serverList = serverList;
+        this.userToServerList = userToServerList;
         timeFormat = Pattern.compile("([2][0-3]|[0-1][0-9]|[1-9]):[0-5][0-9]\\s([AaPp][Mm])\\s(C|c|EST|est)");
     }
 
@@ -31,6 +33,8 @@ public class MessageListener extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+        Server server = serverList.get(event.getGuild().getId());
+        EventController eventController = server.getEventController();
         if(!event.getAuthor().isBot() && event.getMessage().getContentRaw().contains("!eve")) {
             String[] command = event.getMessage().getContentRaw().split(" ");
             int commandLength = command.length;
@@ -71,6 +75,8 @@ public class MessageListener extends ListenerAdapter {
 
     @Override
     public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
+        Server server = userToServerList.get(event.getAuthor().getId());
+        EventController eventController = server.getEventController();
         String[] command = event.getMessage().getContentRaw().split(" ");
         int commandLength = command.length;
         if(!event.getAuthor().isBot() && event.getMessage().getContentRaw().contains("!eve")) {
