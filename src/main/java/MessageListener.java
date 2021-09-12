@@ -1,3 +1,5 @@
+import Commands.CreateCommand;
+import Commands.HelpCommand;
 import EveEvents.Event;
 import EveEvents.EventController;
 import Server.Server;
@@ -10,6 +12,9 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -20,6 +25,11 @@ public class MessageListener extends ListenerAdapter {
     Map<String, Server> serverList;
     Map<String, Server> userToServerList;
     Pattern timeFormat;
+
+    HelpCommand helpCommand = new HelpCommand();
+    CreateCommand createCommand = new CreateCommand();
+
+    private static final Logger logger = LogManager.getLogger();
 
     public MessageListener(Map<String, Server> serverList, Map<String, Server> userToServerList) {
         this.serverList = serverList;
@@ -33,44 +43,69 @@ public class MessageListener extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
-        Server server = serverList.get(event.getGuild().getId());
-        EventController eventController = server.getEventController();
-        if(!event.getAuthor().isBot() && event.getMessage().getContentRaw().contains("!eve")) {
-            String[] command = event.getMessage().getContentRaw().split(" ");
-            int commandLength = command.length;
+        //Return if message is from a bot
+        if(event.getAuthor().isBot()) {
+            return;
+        }
 
-            //Checking for the command
-            if(commandLength == 1) {
-                helpGuildCommands(event.getChannel());
-            } else if(commandLength > 1) {
-                if(eventController == null) {
-                    System.out.println("eventController is null");
-                } else {
-                    if (command[1].equals("create"))
-                        eventController.createEvent(event.getAuthor().getId(), event.getGuild().getId());
-                }
+        String message = event.getMessage().getContentRaw();
+
+        //Help command
+        if(message.equals("!eve")) {
+            logger.info("{} has called the help command", event.getAuthor().getName());
+            helpCommand.buildHelpResponse();
+            helpCommand.sendResponse(event.getChannel());
+            return;
+        }
+
+        if(message.startsWith("!eve")) {
+            Server server = serverList.get(event.getGuild().getId());
+            //Initial check for server in serverList
+            if(server == null) {
+                logger.error("Server doesn't exist in server list");
+                return;
             }
 
-            //Old code -- needs to be reimplemented eventually
-            /*} else if ((msg_argv.length > 1) && msg_argv[1].equals("setchannelname")) {
-            List<TextChannel> channel = event.getGuild().getTextChannelsByName(eventChannel.channelName, true);
-            if(channel.size() > 0) {
-                channel.get(0).getManager().setName(msg_argv[2]).queue();
-                eventChannel.channelName = msg_argv[2];
-            }
-            } else if ((msg_argv.length > 1) && msg_argv[1].equals("setchannelcategory")) {
-            List<TextChannel> channel = event.getGuild().getTextChannelsByName(eventChannel.channelName, true);
-            if(channel.size() > 0) {
-                channel.get(0).getManager().setParent(msg_argv[2]).queue();
-                eventChannel.channelName = msg_argv[2];
-            }
-            }*/
+            EventController eventController = server.getEventController();
 
-        } else if(event.getAuthor().isBot() && event.getChannel().getName().equals("events")) {
+            //Checking the event controller
+            if(eventController == null) {
+                logger.error("Event controller for {}:{} is null", event.getGuild().getName(), event.getGuild().getId());
+                return;
+            }
+
+            String command = message.split(" ")[1];
+            String[] commandParams = message.split(" ");
+            switch (command) {
+                case "create":
+                    boolean correctFormat = createCommand.checkCommand(commandParams);
+                    if(!correctFormat) {
+                        logger.info("{} has called the create help command", event.getAuthor().getName());
+                        createCommand.buildCreateHelpResponse();
+                        createCommand.sendResponse(event.getChannel());
+                        return;
+                    }
+
+                    logger.info("{} has started creating an event", event.getAuthor().getName());
+                    createCommand.buildCreateResponse();
+                    //createCommand.sendResponse(event.getChannel());
+                    //eventController.createEvent(event.getAuthor().getId(), event.getGuild().getId());
+                    break;
+                case "delete":
+                    logger.info("{} has tried to delete an event", event.getAuthor().getName());
+                    break;
+                default:
+                    logger.error("{} used an invalid command !eve {}", event.getAuthor().getName(), command);
+                    break;
+            }
+
+        }
+        /*  else
+            if(event.getChannel().getName().equals("events")) {
             System.out.println(event.getMessage().getEmbeds().get(0).getFields().get(1).getValue());
             Member m = event.getGuild().getMembersByName(event.getMessage().getEmbeds().get(0).getFields().get(1).getValue(), true).get(0);
             eventController.setEventMessageId(m.getId(), event.getMessage().getId());
-        }
+        }*/
     }
 
     @Override
@@ -109,15 +144,6 @@ public class MessageListener extends ListenerAdapter {
         });
     }
 
-    public void helpGuildCommands(MessageChannel channel) {
-        EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("List of Commands:");
-        eb.setDescription("**!eve create** - Creates an event in the guild that the command was called.\n" +
-                "**!eve setchannelname new_name** - (WIP) Changes the name of the default 'events' channel\n" +
-                "**!eve setchannelcategory category_name** - (WIP) Changes the category location");
-        channel.sendMessageEmbeds(eb.build()).queue();
-    }
-
     public void helpPrivateCommands(MessageChannel channel) {
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle("List of Commands:");
@@ -138,5 +164,4 @@ public class MessageListener extends ListenerAdapter {
         eb.setDescription("React to the message to join the waiting lobby");
         jda.getGuildById(userCreatedEvent.getGuildId()).getTextChannelsByName("events", true).get(0).sendMessageEmbeds(eb.build()).queue();
     }
-
 }

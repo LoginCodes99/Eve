@@ -8,8 +8,6 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 public class EventController {
     JDA jda;
@@ -18,10 +16,6 @@ public class EventController {
     Map<String, Event> editingEvents = new HashMap<String, Event>();
 
     public EventController(JDA jda) {
-        this.jda = jda;
-    }
-
-    public void setJDA(JDA jda) {
         this.jda = jda;
     }
 
@@ -87,6 +81,8 @@ public class EventController {
         Event newEvent = new Event(rawNickname, creatorId, guildId);
         editingEvents.put(creatorId, newEvent);
     }
+
+    //public void createEvent()
 
     public boolean isUserEditingEvent(String userId) {
         return editingEvents.containsKey(userId);
