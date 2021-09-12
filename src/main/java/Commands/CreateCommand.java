@@ -2,6 +2,11 @@ package Commands;
 
 import Enums.GamesEnum;
 import Enums.TimezonesEnum;
+import EveEventManager.EventController;
+import EveEventManager.GamePlayer;
+import EveEventManager.GameTime;
+import GameEvents.GameEvent;
+import net.dv8tion.jda.api.EmbedBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,13 +24,34 @@ public class CreateCommand extends Command{
         }
 
         commandEmbed.setTitle("Create Command:");
-        commandEmbed.addField("Game:", getGameList(), false);
+        commandEmbed.addField("Games:", getGameList(), false);
         commandEmbed.addField("Time:", "HH:MM am/pm", false);
-        commandEmbed.addField("Timezone:", getTimezoneList(), false);
+        commandEmbed.addField("Timezones:", getTimezoneList(), false);
     }
 
-    public void buildCreateResponse() {
+    public void buildConfirmCreateResponse(EventController eventController,
+                                           String creatorNickname, String creatorName, String creatorId, String creatorGuildId,
+                                           String game,
+                                           String[] time, String timezone) {
+        commandEmbed.clear();
 
+        GamePlayer gameCreator = new GamePlayer(creatorNickname, creatorName, creatorId, creatorGuildId);
+        GameTime gameTime = new GameTime(time, TimezonesEnum.valueOf(timezone.toUpperCase()));
+        eventController.startEventCreation(gameCreator, GamesEnum.fromString(game), gameTime);
+
+        commandEmbed.setTitle("Confirm Event?");
+        commandEmbed.setDescription("React with :thumbsup: to confirm or :thumbsdown: to cancel");
+        commandEmbed.addField("Game:", GamesEnum.fromString(game).getProperName(), false);
+        commandEmbed.addField("Host:", gameCreator.getCreatorNickname(), false);
+        commandEmbed.addField("Time:", gameTime.toString(), false);
+    }
+
+    public void buildCreateResponse(EventController eventController, String gameCreatorId) {
+        commandEmbed.clear();
+
+        GameEvent gameEvent = eventController.finishEventCreation(gameCreatorId);
+        commandEmbed = new EmbedBuilder(gameEvent.getGameEventEmbed());
+        commandEmbed.setDescription("React with :raised-hand: to join the waiting lobby. Remove reaction to leave.");
     }
 
     public boolean checkCommand(String [] commandParams) {

@@ -1,24 +1,22 @@
 package Server;
 
-import EveEvents.Event;
-import EveEvents.EventController;
+import EveEventManager.EventController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Server {
-    String guildId;
-    String eventChannelName;
-    EventController eventController;
+    private String guildId;
+    private String eventChannelName;
+    private String eventChannelId;
+    private EventController eventController;
 
     private static final Logger logger = LogManager.getLogger();
 
-    public Server(String guildId, String eventChannelName) {
+    public Server(String guildId, String eventChannelName, String eventChannelId) {
         this.guildId = guildId;
         this.eventChannelName = eventChannelName;
-        logger.info("Server created with guildID: " + this.guildId + " and eventChannelName: "  + this.eventChannelName);
+        this.eventChannelId = eventChannelId;
+        logger.info("Server created with guildID: " + this.guildId + " and eventChannelName: "  + this.eventChannelName + ":" + this.eventChannelId);
     }
 
     public void setEventController(EventController eventController) {
@@ -26,6 +24,9 @@ public class Server {
     }
 
     public EventController getEventController() {
-        return eventController;
+        return this.eventController;
     }
+    public String getGuildId() { return this.guildId; }
+    public String getEventChannelName() { return this.eventChannelName; }
+    public String getEventChannelId() { return this.eventChannelId; }
 }

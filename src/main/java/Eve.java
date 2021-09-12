@@ -1,4 +1,4 @@
-import EveEvents.EventController;
+import EveEventManager.EventController;
 import Server.Server;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -31,7 +31,7 @@ public class Eve implements EventListener {
         logger.trace("Starting Eve the event bot");
         MessageListener messageListener = new MessageListener(serverList, userToServerList);
         JDABuilder builder = JDABuilder.createLight(args[0],
-                GatewayIntent.GUILD_MESSAGES, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MEMBERS)
+                GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .addEventListeners(this)
                 .addEventListeners(messageListener)
                 .setActivity(Activity.listening("Type !eve"));
@@ -80,15 +80,15 @@ public class Eve implements EventListener {
     }
 
     public void addServer(Guild g) {
-        serverList.put(g.getId(), new Server(g.getId(), "events"));
+        checkGuildForEventChannel(g);
+
+        serverList.put(g.getId(), new Server(g.getId(), "events", g.getTextChannelsByName("events", true).get(0).getId()));
         serverList.get(g.getId()).setEventController(new EventController(jda));
 
         logger.info("Adding {}:{} to serverList", g.getName(), g.getId());
         for(Member m : g.getMembers()) {
             userToServerList.put(m.getId(), serverList.get(g.getId()));
         }
-
-        checkGuildForEventChannel(g);
     }
 
     public void removeServer(Guild g) {

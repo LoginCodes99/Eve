@@ -1,4 +1,4 @@
-# Eve the EveEvents.Event Bot
+# Eve the EveEventManager.Event Bot
 
 ## Description
 Eve is a discord bot that allows user to create events in their guild. Let's say you want to play a game of Valorant with your friends. 

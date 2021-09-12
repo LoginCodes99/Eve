@@ -28,4 +28,15 @@ public enum GamesEnum {
         }
         return false;
     }
+
+    public static GamesEnum fromString(String gameName) {
+        switch (gameName) {
+            case "valorant":
+                return VALORANT;
+            case "gtav":
+                return GTAV;
+            default:
+                return null;
+        }
+    }
 }
