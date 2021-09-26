@@ -1,5 +1,7 @@
 import EveEventManager.EventController;
-import Server.Server;
+import MongoDB.Connection;
+import MongoDB.ServerDB;
+import Server.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -19,9 +21,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+//TODO: initialize all players and servers making sure they exist in the DB, if not create them
+//TODO: move event handling out of this class
 
 public class Eve implements EventListener {
     JDA jda;
+    Connection connection;
     Map<String, Server> serverList = new ConcurrentHashMap<>();
     Map<String, Server> userToServerList = new ConcurrentHashMap<>();
 
@@ -30,9 +35,11 @@ public class Eve implements EventListener {
     public Eve(String[] args) {
         logger.trace("Starting Eve the event bot");
         MessageListener messageListener = new MessageListener(serverList, userToServerList);
-        JDABuilder builder = JDABuilder.createLight(args[0],
+        ServerEventHandler serverEventHandler = new ServerEventHandler();
+        JDABuilder builder = JDABuilder.createLight(System.getProperty("token"),
                 GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS)
                 .addEventListeners(this)
+                .addEventListeners(serverEventHandler)
                 .addEventListeners(messageListener)
                 .setActivity(Activity.listening("Type !eve"));
 
@@ -42,18 +49,19 @@ public class Eve implements EventListener {
         } catch (Exception e) {
             logger.error("Failed logging Eve into Discord");
         }
+
+        //MongoDB Connection
+        connection = new Connection(System.getProperty("mongodb"));
+        ServerDB.setServers(connection.getServerCollection());
+        initializeServers();
     }
 
     @Override
     public void onEvent(@NotNull GenericEvent event) {
         if(event instanceof ReadyEvent) {
             //Checking for the "events" channel in every guild that Eve is in
-            initializeServers();
+            //initializeServers();
             logger.info("Eve is ready and listening");
-        } else if(event instanceof GuildJoinEvent) {
-            addServer(((GuildJoinEvent) event).getGuild());
-        } else if(event instanceof GuildLeaveEvent) {
-            removeServer(((GuildLeaveEvent) event).getGuild());
         }
     }
 
@@ -61,6 +69,10 @@ public class Eve implements EventListener {
         logger.info("Initializing Server Objects");
         for(Guild g : jda.getGuilds()) {
             addServer(g);
+        }
+
+        for (Server server : serverList.values()) {
+            ServerDB.insertOneServer(server);
         }
     }
 
@@ -79,17 +91,6 @@ public class Eve implements EventListener {
         }
     }
 
-    public void addServer(Guild g) {
-        checkGuildForEventChannel(g);
-
-        serverList.put(g.getId(), new Server(g.getId(), "events", g.getTextChannelsByName("events", true).get(0).getId()));
-        serverList.get(g.getId()).setEventController(new EventController(jda));
-
-        logger.info("Adding {}:{} to serverList", g.getName(), g.getId());
-        for(Member m : g.getMembers()) {
-            userToServerList.put(m.getId(), serverList.get(g.getId()));
-        }
-    }
 
     public void removeServer(Guild g) {
         if(g == null) {

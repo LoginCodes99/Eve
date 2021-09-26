@@ -1,13 +1,12 @@
 package GameEvents;
 
 import Enums.GamesEnum;
-import Enums.TimezonesEnum;
-import EveEventManager.GamePlayer;
+import Player.Player;
 import EveEventManager.GameTime;
 
 public class GtavGameEvent extends GameEvent {
 
-    public GtavGameEvent(GamePlayer gameCreator, GamesEnum gameEnum, GameTime gameTime) {
+    public GtavGameEvent(Player gameCreator, GamesEnum gameEnum, GameTime gameTime) {
         super(gameCreator, GamesEnum.GTAV, gameTime);
         setMaxPlayers(4);
     }

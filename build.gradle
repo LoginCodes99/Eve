@@ -18,8 +18,25 @@ dependencies {
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1')
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1')
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.14.1')
+    implementation(group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.10')
+    // https://mvnrepository.com/artifact/org.mongodb/mongodb-driver
+    implementation group: 'org.mongodb', name: 'mongodb-driver', version: '3.12.10'
+    // https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-core
+    implementation group: 'org.mongodb', name: 'mongodb-driver-core', version: '4.3.2'
+
+    implementation(group: 'org.mongodb', name: 'mongodb-driver-sync', version: '4.3.2')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 test {
     useJUnitPlatform()
+    systemProperties System.getProperties()
+}
+
+task(runMain, dependsOn: 'classes', type: JavaExec) {
+    main = 'Eve'
+    classpath = sourceSets.main.runtimeClasspath
+    systemProperties System.getProperties()
 }

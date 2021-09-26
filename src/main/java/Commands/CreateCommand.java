@@ -3,7 +3,7 @@ package Commands;
 import Enums.GamesEnum;
 import Enums.TimezonesEnum;
 import EveEventManager.EventController;
-import EveEventManager.GamePlayer;
+import Player.Player;
 import EveEventManager.GameTime;
 import GameEvents.GameEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -35,7 +35,7 @@ public class CreateCommand extends Command{
                                            String[] time, String timezone) {
         commandEmbed.clear();
 
-        GamePlayer gameCreator = new GamePlayer(creatorNickname, creatorName, creatorId, creatorGuildId);
+        Player gameCreator = new Player(creatorNickname, creatorName, creatorId, creatorGuildId);
         GameTime gameTime = new GameTime(time, TimezonesEnum.valueOf(timezone.toUpperCase()));
         eventController.startEventCreation(gameCreator, GamesEnum.fromString(game), gameTime);
 

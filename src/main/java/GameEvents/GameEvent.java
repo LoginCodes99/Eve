@@ -1,31 +1,33 @@
 package GameEvents;
 
 import Enums.GamesEnum;
-import Enums.TimezonesEnum;
-import EveEventManager.GamePlayer;
+import Player.Player;
 import EveEventManager.GameTime;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class GameEvent {
-    private GamePlayer gameCreator;
+    private String eventId;
+    private Player gameCreator;
     private GamesEnum gameEnum;
     private GameTime gameTime;
-    private List<GamePlayer> gamePlayerList;
+    private List<Player> playerList;
     private Integer maxPlayers;
 
     //Embed for event message
     MessageEmbed gameEventEmbed;
 
-    public GameEvent(GamePlayer gameCreator, GamesEnum gameEnum, GameTime gameTime) {
+    public GameEvent(Player gameCreator, GamesEnum gameEnum, GameTime gameTime) {
+        this.eventId = UUID.randomUUID().toString();
         this.gameCreator = gameCreator;
         this.gameEnum = gameEnum;
         this.gameTime = gameTime;
-        gamePlayerList = new ArrayList<>();
-        gamePlayerList.add(gameCreator);
+        this.playerList = new ArrayList<>();
+        this.playerList.add(gameCreator);
     }
 
     public void setMaxPlayers(Integer maxPlayers) { this.maxPlayers = maxPlayers; }
@@ -34,14 +36,15 @@ public class GameEvent {
         gameEventEmbedBuilder.setTitle(getGameEnum().getProperName() + " Game");
         gameEventEmbedBuilder.addField("Host:", getGameCreator().getCreatorNickname() + "-" + getGameCreator().getCreatorName(), true);
         gameEventEmbedBuilder.addField("When?", getGameTime().toString(), false);
-        gameEventEmbedBuilder.addField("Players " + gamePlayerList.size() + "/" + getMaxPlayers(), gamePlayerListToString(), false);
+        gameEventEmbedBuilder.addField("Players " + playerList.size() + "/" + getMaxPlayers(), gamePlayerListToString(), false);
         gameEventEmbed = gameEventEmbedBuilder.build();
     }
 
-    public GamePlayer getGameCreator() { return this.gameCreator; }
+    public String getEventId() { return this.eventId; }
+    public Player getGameCreator() { return this.gameCreator; }
     public GamesEnum getGameEnum() { return this.gameEnum; }
     public GameTime getGameTime() { return this.gameTime; }
-    public List<GamePlayer> getGamePlayerList() { return this.gamePlayerList; }
+    public List<Player> getGamePlayerList() { return this.playerList; }
     public Integer getMaxPlayers() { return this.maxPlayers; }
     public MessageEmbed getGameEventEmbed() { return this.gameEventEmbed; }
 
@@ -49,18 +52,18 @@ public class GameEvent {
         return getGamePlayerList().size()+1 <= getMaxPlayers();
     }
 
-    public void addPlayer(GamePlayer newPlayer) {
-        gamePlayerList.add(newPlayer);
+    public void addPlayer(Player newPlayer) {
+        playerList.add(newPlayer);
     }
 
     public String gamePlayerListToString() {
         StringBuilder gamePlayerListBuilder = new StringBuilder();
         int curPlayer = 0;
-        for (GamePlayer player : getGamePlayerList()) {
+        for (Player player : getGamePlayerList()) {
             gamePlayerListBuilder.append(player.getCreatorNickname());
             curPlayer++;
 
-            if(curPlayer != gamePlayerList.size()) {
+            if(curPlayer != playerList.size()) {
                 gamePlayerListBuilder.append(", ");
             }
         }

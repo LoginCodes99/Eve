@@ -58,7 +58,7 @@ public class MessageListener extends ListenerAdapter {
                 case "Valorant Game":
                 case "GTA V Game":
                     String hostName = event.getMessage().getEmbeds().get(0).getFields().get(0).getValue().split("-")[1].trim();
-                    serverList.get(event.getGuild().getId()).getEventController().
+                    //serverList.get(event.getGuild().getId()).getEventController().
                     serverList.get(event.getGuild().getId()).getEventController().mapCreatorToMessage(event.getMessageId(), event.getGuild().getMembersByName(hostName, true).get(0).getId());
                     break;
             }

@@ -1,9 +1,9 @@
 package EveEventManager;
 
 import Enums.GamesEnum;
-import Enums.TimezonesEnum;
 import GameEvents.GameEvent;
 import GameEvents.ValorantGameEvent;
+import Player.Player;
 import net.dv8tion.jda.api.JDA;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +23,7 @@ public class EventController {
         this.jda = jda;
     }
 
-    public void startEventCreation(GamePlayer gameCreator, GamesEnum gamesEnum, GameTime gameTime) {
+    public void startEventCreation(Player gameCreator, GamesEnum gamesEnum, GameTime gameTime) {
         switch (gamesEnum) {
             case VALORANT:
                 startValorantEvent(gameCreator, gamesEnum, gameTime);
@@ -36,7 +36,7 @@ public class EventController {
         }
     }
 
-    public void startValorantEvent(GamePlayer gameCreator, GamesEnum game, GameTime gameTime) {
+    public void startValorantEvent(Player gameCreator, GamesEnum game, GameTime gameTime) {
         ValorantGameEvent gameEvent = new ValorantGameEvent(gameCreator, game, gameTime);
         editingEvents.put(gameCreator.getCreatorId(), gameEvent);
     }
@@ -59,11 +59,11 @@ public class EventController {
         messageIdToCreator.put(messageId, gameCreatorId);
     }
 
-    public void addPlayerToGameEvent(String messageId, GamePlayer gamePlayer) {
+    public void addPlayerToGameEvent(String messageId, Player player) {
         GameEvent gameEvent = listOfEvents.get(messageIdToCreator.get(messageId));
 
         if(gameEvent.canAddPlayer()) {
-            gameEvent.addPlayer(gamePlayer);
+            gameEvent.addPlayer(player);
         }
     }
 }
